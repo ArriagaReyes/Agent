@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 
+const DocumentRouter = require('./routes/Document.route');
+const RepositoryRouter = require('./routes/Repository.route');
+
 const app = express();
 
 logger.info('Initilizing middleware');
@@ -10,11 +13,8 @@ app.use(morgan('common'));
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    logger.info('accessing / endpoint');
-
-    res.send('This is the server').status(201).end();
-});
+app.use('/api/document', DocumentRouter);
+app.use('/api/repository', RepositoryRouter);
 
 logger.info('Exporting express app');
 module.exports = app;
