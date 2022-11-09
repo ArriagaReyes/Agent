@@ -1,5 +1,7 @@
+const stage = process.env.NODE_ENV;
+
 const log = (fn) => {
-    if(process.env.NODE_ENV !== 'production' || 'test') fn();
+    if(!stage.localeCompare('development')) fn();
 }
 
 const info = (...params) =>

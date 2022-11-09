@@ -13,6 +13,7 @@ app.use(morgan('common'));
 app.use(cors());
 app.use(express.json());
 
+logger.info('setting up routes');
 app.use('/api/document', DocumentRouter);
 app.use('/api/repository', RepositoryRouter);
 

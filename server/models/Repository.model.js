@@ -1,7 +1,10 @@
 const { Schema, model } = require('mongoose');
 
 const schema = new Schema({
-    name: String,
+    name: {
+        type: String,
+        unique: true
+    },
     documents: [{
         type: Schema.Types.ObjectId,
         ref: 'Document'

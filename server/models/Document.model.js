@@ -1,7 +1,7 @@
 const { Schema, model } = require('mongoose');
 
 const schema = new Schema({
-    name: String,
+    name: { type: String, required: true },
     fields: {},
     repository: { type: Schema.Types.ObjectId, ref: 'Repository' }
 });

@@ -9,6 +9,12 @@ router.get(
             logger.info('Getting all repositories');
             const repoList = await Repository.find({});
 
+            if(repoList.length === 0) {
+                return res.status(404).json({
+                    api: { error: 'No repos found' }
+                });
+            }
+
             const response = {
                 api: {
                     repositories: repoList
@@ -52,20 +58,24 @@ router.post(
     '/',
     async (req, res) => {
         logger.info('Creating new repository');
-        logger.info(req.body);
-        if(!req.body.repository) return res.status(400).json({ message: 'Missing repository!'});
+
+        if(!req.body.repository) return res.status(400).json({ api: {
+            error: 'Missing repository'
+        }});
 
         const { name } = req.body.repository;
-        if(!name) return res.status(400).json({ message: 'Missing name!' });
-
-        const repo = new Repository({
-            name
-        });
+        if(!name) return res.status(400).json({ api: {
+            error: 'Missing name'
+        }});
 
         try {
+            const repo = new Repository({ name });
+
             const saved = await repo.save();
 
-            res.status(201).json({ message: saved });
+            res.status(201).json({ api: {
+                repository: saved
+            }});
         } catch (error) {
             res.status(400).json({ message: error });
         }

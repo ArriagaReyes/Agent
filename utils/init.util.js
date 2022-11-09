@@ -7,5 +7,5 @@ module.exports = () => {
     if(!PORT) throw new Error('Port number missing');
     if(!DB_URI) throw new Error('Database URI missing');
 
-    require('./database.util')();
+    require('./database.util').connect();
 };
