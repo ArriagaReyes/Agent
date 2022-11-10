@@ -2,51 +2,51 @@ const router = require('express').Router();
 const Document = require('../models/Document.model');
 const logger = require('../../utils/logger.util');
 const Repository = require('../models/Repository.model');
+const validate = require('../utils/validation');
 
 router.post(
     '/',
     async (req, res) => {
-        logger.info('adding a document to the repository');
-        logger.info(req.body);
-
-        const { document, repository } = req.body;
-
-        if(!document) return res.status(400).json({
-            api: {
-                message: 'Missing document'
-            }
-        });
-
-        if(!repository) return res.status(400).json({
-            api: {
-                message: 'Missing repoistory'
-            }
-        });
-
-        const repo = await Repository.findById(repository.id);
-        if(!repo) return res.status(400).json({ api: {
-            message: 'Cant find repository'
+        const { error } = validate.document(req.body);
+        if(error) return res.status(400).json({ api: {
+            error: error.details[0].message
         }});
 
-        const doc = new Document({
-            name: document.name,
-            repository: repo.id
-        });
+        let { name, repository } = req.body;
+        name = name.toLowerCase();
+
+        const exists = await Document.findOne({ name });
+        if(exists) return res.status(400).json({ api: {
+            error: 'Document already exists'
+        }});
+
+        let repo;
 
         try {
-            const saved = await doc.save();
+            repo = await Repository.findById(repository.id);
+            if(!repo) return res.status(404).json({ api: {
+                error: 'Repository not found'
+            }});
+        } catch (error) {
+            return res.status(400).json({ api: {
+                error: 'Repository id invalid'
+            }});
+        }
+
+        try {
+            const saved = await new Document({
+                name,
+                repository: repository.id
+            }).save();
 
             repo.documents = repo.documents.concat(saved.id);
             await repo.save();
 
-            logger.info('Document saved');
-            res.status(201).json({ 
-                api: { saved }
-             });
+            res.status(201).json({ api: {
+                document: saved
+            }});
         } catch (error) {
-            res.status(400).json({
-                api: { error}
-            });
+            res.status(400).json({ api: { error} });
         }
     }
 );
