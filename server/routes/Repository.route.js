@@ -1,30 +1,26 @@
 const router = require('express').Router();
 const Repository = require('../models/Repository.model');
 const logger = require('../../utils/logger.util');
+const validate = require('../utils/validation');
 
 router.get(
     '/',
     async (req, res) => {
         try {
             logger.info('Getting all repositories');
-            const repoList = await Repository.find({});
+            const list = await Repository.find({}).populate('documents');
 
-            if(repoList.length === 0) {
-                return res.status(404).json({
-                    api: { error: 'No repos found' }
-                });
+            if(list.length === 0) {
+                return res.status(404).json({ api: {
+                    error: 'No repos found'
+                }});
             }
 
-            const response = {
-                api: {
-                    repositories: repoList
-                }
-            }
-
-            res.status(200).json(response);
+            res.status(200).json({ api: {
+                respositories: list
+            }});
         } catch(error) {
-            logger.info(error);
-            return res.status(400).json({ message: error });
+            return res.status(400).json({ error });
         }
     }
 );
@@ -32,24 +28,22 @@ router.get(
 router.get(
     '/:name',
     async (req, res) => {
-        logger.info('Getting a single repository');
-        const { name } = req.params;
+        const { error } = validate.name(req.params);
+        if(error) return res.status(400).json({ api: {
+            error: error.details[0].message
+        }});
+
+        let { name } = req.params;
+        name = name.toLowerCase();
 
         try {
-            const repo = await Repository.find({ name }).exec();
-    
-            if(repo.length > 0) {
-                const response = {
-                    api : { repo }
-                }
-                
-                logger.info(`${name} found`);
-                res.status(200).json(response);
-            } else {
-                res.status(404).json({ api: { message: 'Not found' } })
-            }
+            const repository = await Repository.findOne({ name }).exec();
+
+            res.status(200).json({ api: {
+                repository
+            }});
         } catch(error) {
-            res.status(400).json({ api: error });
+            res.status(400).json({ api: { error } });
         }
     }
 );
@@ -57,27 +51,27 @@ router.get(
 router.post(
     '/',
     async (req, res) => {
-        logger.info('Creating new repository');
-
-        if(!req.body.repository) return res.status(400).json({ api: {
-            error: 'Missing repository'
+        const { error } = validate.name(req.body);
+        if(error) return res.status(400).json({ api: {
+            error: error.details[0].message
         }});
 
-        const { name } = req.body.repository;
-        if(!name) return res.status(400).json({ api: {
-            error: 'Missing name'
+        let { name } = req.body;
+        name = name.toLowerCase();
+
+        const exists = await Repository.findOne({ name });
+        if(exists) return res.status(400).json({ api: {
+            error: 'Repository already exists'
         }});
 
         try {
-            const repo = new Repository({ name });
-
-            const saved = await repo.save();
+            const saved = await new Repository({ name }).save();
 
             res.status(201).json({ api: {
                 repository: saved
             }});
         } catch (error) {
-            res.status(400).json({ message: error });
+            res.status(400).json({ api: { error } });
         }
     }
 );
