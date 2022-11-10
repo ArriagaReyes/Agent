@@ -18,4 +18,13 @@ const document = data => {
     return schema.validate(data);
 }
 
-module.exports = { name, document };
+const update = data => {
+    const schema = joi.object({
+        id: joi.required(),
+        fields: joi.required()
+    });
+
+    return schema.validate(data);
+}
+
+module.exports = { name, document, update };
