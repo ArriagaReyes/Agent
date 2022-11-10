@@ -51,6 +51,41 @@ router.post(
     }
 );
 
+router.put(
+    '/',
+    async (req, res) => {
+        const { error } = validate.update(req.body);
+        if(error) return res.status(400).json({ api: {
+            error: error.details[0].message
+        }});
+
+        const { id, fields } = req.body;
+        let document;
+
+        try {
+            document = await Document.findById(id);
+            if(!document) return res.status(404).json({ api: {
+                error: 'document not found'
+            }});
+        } catch (error) {
+            return res.status(400).json({ api: {
+                error: 'Repository id invalid'
+            }});
+        }
+
+        try {
+            document.fields = fields;
+            const saved = await document.save();
+
+            res.status(200).json({ api: {
+                document: saved
+            }})
+        } catch (error) {
+            res.status(400).json({ api: { error } })
+        }
+    }
+);
+
 router.delete(
     '/:id',
     async (req, res) => {
