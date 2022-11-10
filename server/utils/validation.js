@@ -8,4 +8,14 @@ const name = data => {
     return schema.validate(data);
 };
 
-module.exports = { name };
+const document = data => {
+    const schema = joi.object({
+        name: joi.string().min(3).required(),
+        repository: joi.required()/*,
+        fields: joi.required()*/
+    });
+
+    return schema.validate(data);
+}
+
+module.exports = { name, document };
