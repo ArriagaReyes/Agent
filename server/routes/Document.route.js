@@ -95,9 +95,12 @@ router.delete(
                 error: 'Document not found'
             }});
 
-            res.status(200).json({ api: {
-                document: deleted
-            }});
+            const repository = await Repository.findById(deleted.repository);
+
+            repository.documents = repository.documents.filter((value) => value != req.params.id);
+            await repository.save();
+
+            res.status(204).end();
         } catch (error) {
             return res.status(400).json({ api: {
                 error: 'Document id invalid'
