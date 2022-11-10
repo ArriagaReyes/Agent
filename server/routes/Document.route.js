@@ -25,11 +25,11 @@ router.post(
         try {
             repo = await Repository.findById(repository.id);
             if(!repo) return res.status(404).json({ api: {
-                error: 'Repository not found'
+                error: 'Document not found'
             }});
         } catch (error) {
             return res.status(400).json({ api: {
-                error: 'Repository id invalid'
+                error: 'Document id invalid'
             }});
         }
 
@@ -65,11 +65,11 @@ router.put(
         try {
             document = await Document.findById(id);
             if(!document) return res.status(404).json({ api: {
-                error: 'document not found'
+                error: 'Document not found'
             }});
         } catch (error) {
             return res.status(400).json({ api: {
-                error: 'Repository id invalid'
+                error: 'Document id invalid'
             }});
         }
 
@@ -89,7 +89,20 @@ router.put(
 router.delete(
     '/:id',
     async (req, res) => {
-        res.status(200).json({ message: 'deleting a document to the repository' });
+        try {
+            const deleted = await Document.findByIdAndDelete(req.params.id);
+            if(!deleted) return res.status(404).json({ api: {
+                error: 'Document not found'
+            }});
+
+            res.status(200).json({ api: {
+                document: deleted
+            }});
+        } catch (error) {
+            return res.status(400).json({ api: {
+                error: 'Document id invalid'
+            }});
+        }
     }
 );
 
