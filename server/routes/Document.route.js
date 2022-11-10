@@ -15,11 +15,6 @@ router.post(
         let { name, repository } = req.body;
         name = name.toLowerCase();
 
-        const exists = await Document.findOne({ name });
-        if(exists) return res.status(400).json({ api: {
-            error: 'Document already exists'
-        }});
-
         let repo;
 
         try {
@@ -32,6 +27,12 @@ router.post(
                 error: 'Document id invalid'
             }});
         }
+
+        await repo.populate('documents');
+        const exists = repo.documents.find((value) => value.name == name );
+        if(exists) return res.status(400).json({ api: {
+            error: 'Document already exists'
+        }});
 
         try {
             const saved = await new Document({
